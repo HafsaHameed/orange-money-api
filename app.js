@@ -203,6 +203,91 @@ app.post('/performOneStepPayment', async (req, res) => {
         res.status(500).json({ error: 'Server error: ' + error.message });
     }
 });
+//CASHIN API
+// ===== CASHIN ENDPOINT =====
+app.post('/cashin', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const accessToken = authHeader && authHeader.split(' ')[1];
+  if (!accessToken) {
+    return res.status(401).json({ error: 'Missing access token (provide Bearer <token>)' });
+  }
+
+  const { partner, customer, amount, reference, receiveNotification } = req.body;
+
+  if (!partner || !customer || !amount) {
+    return res.status(400).json({ error: 'Missing required fields: partner, customer, amount' });
+  }
+
+  try {
+    const response = await fetch('https://api.sandbox.orange-sonatel.com/api/eWallet/v1/cashins', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        partner,
+        customer,
+        amount,
+        reference: reference || '',
+        receiveNotification: receiveNotification || false
+      }),
+    });
+
+    const data = await response.json();
+    console.log('CASHIN response status:', response.status);
+    console.log('CASHIN response body:', data);
+
+    if (response.ok) {
+      res.json({ success: true, data });
+    } else {
+      res.status(response.status).json({ success: false, error: data });
+    }
+  } catch (err) {
+    console.error('Cashin error:', err);
+    res.status(500).json({ error: 'Server error: ' + err.message });
+  }
+});
+
+
+// ===== VERIFY TRANSACTION ENDPOINT =====
+app.post('/verifyTransaction', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const accessToken = authHeader && authHeader.split(' ')[1];
+  if (!accessToken) {
+    return res.status(401).json({ error: 'Missing access token (provide Bearer <token>)' });
+  }
+
+  const { reference } = req.body;
+  if (!reference) {
+    return res.status(400).json({ error: 'Missing required field: reference' });
+  }
+
+  try {
+    const url = `https://api.sandbox.orange-sonatel.com/api/eWallet/v1/transactions/${reference}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    console.log('VERIFY response status:', response.status);
+    console.log('VERIFY response body:', data);
+
+    if (response.ok) {
+      res.json({ success: true, data });
+    } else {
+      res.status(response.status).json({ success: false, error: data });
+    }
+  } catch (err) {
+    console.error('Verify transaction error:', err);
+    res.status(500).json({ error: 'Server error: ' + err.message });
+  }
+});
+
 // Start the server
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
