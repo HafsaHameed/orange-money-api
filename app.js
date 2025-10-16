@@ -252,7 +252,7 @@ app.post('/cashin', async (req, res) => {
 
 // ===== VERIFY TRANSACTION ENDPOINT =====
 //new corected headers
-app.post('/verifyTransaction', async (req, res) => {
+app.get('/verifyTransaction', async (req, res) => {
   try {
     // ✅ Extract Bearer token from Authorization header
     const authHeader = req.headers.authorization;
@@ -264,17 +264,17 @@ app.post('/verifyTransaction', async (req, res) => {
       });
     }
 
-    // ✅ Validate required field
-    const { reference } = req.body;
-    if (!reference) {
+    // ✅ Get transaction ID from query param (e.g., ?id=12345)
+    const { id } = req.query;
+    if (!id) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required field: reference',
+        error: 'Missing required parameter: id',
       });
     }
 
     // ✅ Orange Money Verify Transaction API URL
-    const url = `https://api.sandbox.orange-sonatel.com/api/eWallet/v1/transactions/${reference}`;
+    const url = `https://api.sandbox.orange-sonatel.com/api/eWallet/v1/transactions/${id}`;
 
     // ✅ Make request with Bearer token
     const response = await fetch(url, {
@@ -293,7 +293,6 @@ app.post('/verifyTransaction', async (req, res) => {
 
     // ✅ Handle success or failure
     if (response.ok) {
-      // Optional: normalize Orange API response
       const status = data?.transactionStatus || data?.status || 'unknown';
       res.json({
         success: true,
