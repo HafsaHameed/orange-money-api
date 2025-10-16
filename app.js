@@ -251,7 +251,72 @@ app.post('/cashin', async (req, res) => {
 
 
 // ===== VERIFY TRANSACTION ENDPOINT =====
+//new corected headers
 app.post('/verifyTransaction', async (req, res) => {
+  try {
+    // ✅ Extract Bearer token from Authorization header
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader && authHeader.split(' ')[1];
+    if (!accessToken) {
+      return res.status(401).json({
+        success: false,
+        error: 'Missing access token. Provide header: Authorization: Bearer <token>',
+      });
+    }
+
+    // ✅ Validate required field
+    const { reference } = req.body;
+    if (!reference) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required field: reference',
+      });
+    }
+
+    // ✅ Orange Money Verify Transaction API URL
+    const url = `https://api.sandbox.orange-sonatel.com/api/eWallet/v1/transactions/${reference}`;
+
+    // ✅ Make request with Bearer token
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // ✅ Parse JSON safely
+    const data = await response.json();
+    console.log('VERIFY → Status:', response.status);
+    console.log('VERIFY → Body:', data);
+
+    // ✅ Handle success or failure
+    if (response.ok) {
+      // Optional: normalize Orange API response
+      const status = data?.transactionStatus || data?.status || 'unknown';
+      res.json({
+        success: true,
+        status,
+        data,
+      });
+    } else {
+      res.status(response.status).json({
+        success: false,
+        error: data,
+      });
+    }
+  } catch (err) {
+    console.error('VERIFY TRANSACTION ERROR:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Server error: ' + err.message,
+    });
+  }
+});
+
+//previous
+/*app.post('/verifyTransaction', async (req, res) => {
   const authHeader = req.headers.authorization;
   const accessToken = authHeader && authHeader.split(' ')[1];
   if (!accessToken) {
@@ -287,7 +352,7 @@ app.post('/verifyTransaction', async (req, res) => {
     res.status(500).json({ error: 'Server error: ' + err.message });
   }
 });
-
+*/
 // Start the server
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
