@@ -264,19 +264,19 @@ app.get('/verifyTransaction', async (req, res) => {
       });
     }
 
-    // ✅ Get transaction ID from query param (e.g., ?id=12345)
-    const { id } = req.query;
-    if (!id) {
+    // ✅ Get transaction ID from query parameter (e.g., ?transactionId=CI251016.1901.B00238)
+    const { transactionId } = req.query;
+    if (!transactionId) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required parameter: id',
+        error: 'Missing required query parameter: transactionId',
       });
     }
 
-    // ✅ Orange Money Verify Transaction API URL
-    const url = `https://api.sandbox.orange-sonatel.com/api/eWallet/v1/transactions/${id}`;
+    // ✅ Orange Money Verify Transaction API URL (uses query parameter, not path)
+    const url = `https://api.sandbox.orange-sonatel.com/api/eWallet/v1/transactions?transactionId=${transactionId}`;
 
-    // ✅ Make request with Bearer token
+    // ✅ Make request to Orange Money API
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -294,25 +294,27 @@ app.get('/verifyTransaction', async (req, res) => {
     // ✅ Handle success or failure
     if (response.ok) {
       const status = data?.transactionStatus || data?.status || 'unknown';
-      res.json({
+      return res.json({
         success: true,
         status,
         data,
       });
     } else {
-      res.status(response.status).json({
+      return res.status(response.status).json({
         success: false,
         error: data,
       });
     }
+
   } catch (err) {
     console.error('VERIFY TRANSACTION ERROR:', err);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Server error: ' + err.message,
     });
   }
 });
+
 
 //previous
 /*app.post('/verifyTransaction', async (req, res) => {
