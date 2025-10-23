@@ -293,7 +293,7 @@ app.get('/verifyTransaction', async (req, res) => {
 
     // ✅ Handle success or failure
     if (response.ok) {
-      const status = data?.transactionStatus || data?.status || 'unknown';
+     const status = data?.[0]?.status || 'unknown';
       return res.json({
         success: true,
         status,
