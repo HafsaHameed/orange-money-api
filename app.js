@@ -203,9 +203,104 @@ app.post('/performOneStepPayment', async (req, res) => {
         res.status(500).json({ error: 'Server error: ' + error.message });
     }
 });
+
+
 //CASHIN API
 // ===== CASHIN ENDPOINT =====
+//Third version no hardcoded endpoint urls use dynamic urls for sandbox and productin
+
 app.post('/cashin', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const accessToken = authHeader && authHeader.split(' ')[1];
+
+  if (!accessToken) {
+    return res.status(401).json({ error: 'Missing access token' });
+  }
+
+  const { partner, customer, amount, reference, receiveNotification } = req.body;
+
+  if (!partner || !customer || !amount) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    const response = await fetch(
+      `${ORANGE_BASE_URL}/api/eWallet/v1/cashins`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          partner,
+          customer,
+          amount,
+          reference: reference || '',
+          receiveNotification: receiveNotification || false,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.ok) {
+      return res.json({ success: true, data });
+    }
+
+    return res.status(response.status).json({ success: false, error: data });
+
+  } catch (err) {
+    console.error('Cashin error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/verifyTransaction', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const accessToken = authHeader && authHeader.split(' ')[1];
+
+  if (!accessToken) {
+    return res.status(401).json({ error: 'Missing access token' });
+  }
+
+  const { transactionId } = req.query;
+  if (!transactionId) {
+    return res.status(400).json({ error: 'transactionId required' });
+  }
+
+  try {
+    const response = await fetch(
+      `${ORANGE_BASE_URL}/api/eWallet/v1/transactions?transactionId=${transactionId}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/json',
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.ok) {
+      return res.json({
+        success: true,
+        status: data?.[0]?.status ?? 'unknown',
+        data,
+      });
+    }
+
+    return res.status(response.status).json({ success: false, error: data });
+
+  } catch (err) {
+    console.error('Verify error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+//_____________________________________________________________________________________________________________________________________________________________
+/*app.post('/cashin', async (req, res) => {
   const authHeader = req.headers.authorization;
   const accessToken = authHeader && authHeader.split(' ')[1];
   if (!accessToken) {
@@ -314,7 +409,7 @@ app.get('/verifyTransaction', async (req, res) => {
     });
   }
 });
-
+*/
 
 //previous
 /*app.post('/verifyTransaction', async (req, res) => {
