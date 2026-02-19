@@ -1,27 +1,25 @@
 const express = require('express');
 const fetch = require('node-fetch');
-const bodyParser = require('body-parser');
-const cors = require('cors');
 const crypto = require('crypto');
 const NodeRSA = require('node-rsa'); 
 const { v4: uuidv4 } = require('uuid');
 
 const app = express(); // ✅ MUST come before app.use
 
-app.use(bodyParser.json());
+app.use(express.json());
 
-// ✅ CORS — browser friendly
-app.use(
-  cors({
-    origin: '*', // 🔥 TEMP: allow all for now
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'x-orange-env',
-    ],
-  })
-);
+// Basic CORS middleware (no external dependency required for deployment)
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-orange-env');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
 
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
@@ -307,6 +305,8 @@ app.get('/verifyTransaction', async (req, res) => {
   }
 
   try {
+    const orangeEnv = getOrangeEnv(req);
+
     const response = await fetch(
       `${orangeEnv.baseUrl}/api/eWallet/v1/transactions?transactionId=${transactionId}`,
       {
@@ -487,7 +487,7 @@ app.get('/verifyTransaction', async (req, res) => {
 });
 */
 // Start the server
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
