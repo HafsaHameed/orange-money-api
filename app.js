@@ -1,12 +1,26 @@
 const express = require('express');
 const fetch = require('node-fetch');
 const bodyParser = require('body-parser');
-const NodeRSA = require('node-rsa');  // Import the Node-RSA library
-
+const cors = require('cors');
+const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 
-const app = express();
+const app = express(); // ✅ MUST come before app.use
+
 app.use(bodyParser.json());
+
+// ✅ CORS — browser friendly
+app.use(
+  cors({
+    origin: '*', // 🔥 TEMP: allow all for now
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'x-orange-env',
+    ],
+  })
+);
 
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
