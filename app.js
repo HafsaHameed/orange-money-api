@@ -10,7 +10,28 @@ app.use(bodyParser.json());
 
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
+const ORANGE_CONFIG = {
+  sandbox: {
+    baseUrl: 'https://api.sandbox.orange-sonatel.com',
+    name: 'SANDBOX',
+  },
+  production: {
+    baseUrl: 'https://api.orange-sonatel.com', // confirm with Orange
+    name: 'PRODUCTION',
+  },
+};
 
+function getOrangeEnv(req) {
+  const env = req.headers['x-orange-env'];
+
+  if (!env || !ORANGE_CONFIG[env]) {
+    throw new Error(
+      'Invalid or missing x-orange-env header. Use: sandbox | production'
+    );
+  }
+
+  return ORANGE_CONFIG[env];
+}
 
 // Endpoint to obtain the access token
 app.post('/getAccessToken', async (req, res) => {
@@ -216,7 +237,7 @@ app.post('/cashin', async (req, res) => {
   if (!accessToken) {
     return res.status(401).json({ error: 'Missing access token' });
   }
-
+  const orangeEnv = getOrangeEnv(req);
   const { partner, customer, amount, reference, receiveNotification } = req.body;
 
   if (!partner || !customer || !amount) {
@@ -225,7 +246,7 @@ app.post('/cashin', async (req, res) => {
 
   try {
     const response = await fetch(
-      `${ORANGE_BASE_URL}/api/eWallet/v1/cashins`,
+      `${orangeEnv.baseUrl}/api/eWallet/v1/cashins`,
       {
         method: 'POST',
         headers: {
@@ -271,7 +292,7 @@ app.get('/verifyTransaction', async (req, res) => {
 
   try {
     const response = await fetch(
-      `${ORANGE_BASE_URL}/api/eWallet/v1/transactions?transactionId=${transactionId}`,
+      `${orangeEnv.baseUrl}/api/eWallet/v1/transactions?transactionId=${transactionId}`,
       {
         method: 'GET',
         headers: {
