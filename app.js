@@ -135,8 +135,8 @@ app.get('/generateTestNumber', async (req, res) => {
 
 
 // Endpoint to encrypt PIN using the public key
-
-const crypto = require('crypto');
+// NOTE: crypto is already imported at the top of the file.
+// const crypto = require('crypto');
 
 
 app.post('/encryptPin', (req, res) => {
@@ -295,6 +295,7 @@ app.post('/cashin', async (req, res) => {
 app.get('/verifyTransaction', async (req, res) => {
   const authHeader = req.headers.authorization;
   const accessToken = authHeader && authHeader.split(' ')[1];
+  const orangeEnv = getOrangeEnv(req);
 
   if (!accessToken) {
     return res.status(401).json({ error: 'Missing access token' });
