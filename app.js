@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const crypto = require('crypto');
+const NodeRSA = require('node-rsa'); 
 const { v4: uuidv4 } = require('uuid');
 
 const app = express(); // ✅ MUST come before app.use
