@@ -1,4 +1,4 @@
-const express = require('express');
+/*const express = require('express');
 const fetch = require('node-fetch');
 const crypto = require('crypto');
 const NodeRSA = require('node-rsa'); 
@@ -335,6 +335,153 @@ app.get('/verifyTransaction', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+*/
+
+const express = require('express');
+const fetch = require('node-fetch');
+const crypto = require('crypto');
+const { v4: uuidv4 } = require('uuid');
+
+const app = express();
+app.use(express.json());
+
+// ✅ Browser-friendly CORS (TEMP: open)
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Content-Type,Authorization,x-orange-env'
+  );
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
+const client_id = process.env.CLIENT_ID;
+const client_secret = process.env.CLIENT_SECRET;
+
+const ORANGE_CONFIG = {
+  sandbox: {
+    baseUrl: 'https://api.sandbox.orange-sonatel.com',
+  },
+  production: {
+    baseUrl: 'https://api.orange-sonatel.com',
+  },
+};
+
+function getOrangeEnv(req) {
+  const env = req.headers['x-orange-env'];
+  if (!env || !ORANGE_CONFIG[env]) {
+    throw new Error('Missing x-orange-env: sandbox | production');
+  }
+  return ORANGE_CONFIG[env];
+}
+
+/* ================= ACCESS TOKEN ================= */
+
+app.post('/getAccessToken', async (req, res) => {
+  try {
+    const response = await fetch(
+      'https://api.sandbox.orange-sonatel.com/oauth/token',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `grant_type=client_credentials&client_id=${client_id}&client_secret=${client_secret}`,
+      }
+    );
+
+    const data = await response.json();
+    if (!response.ok) return res.status(response.status).json(data);
+
+    res.json({ accessToken: data.access_token });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ================= ENCRYPT PIN ================= */
+
+app.post('/encryptPin', (req, res) => {
+  try {
+    const { key, pinCode } = req.body;
+
+    const publicKey = `-----BEGIN PUBLIC KEY-----\n${key
+      .match(/.{1,64}/g)
+      .join('\n')}\n-----END PUBLIC KEY-----`;
+
+    const encryptedPin = crypto.publicEncrypt(
+      { key: publicKey, padding: crypto.constants.RSA_PKCS1_PADDING },
+      Buffer.from(pinCode)
+    );
+
+    res.json({ encryptedPin: encryptedPin.toString('base64') });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ================= CASHIN ================= */
+
+app.post('/cashin', async (req, res) => {
+  try {
+    const orangeEnv = getOrangeEnv(req);
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Missing token' });
+
+    const response = await fetch(
+      `${orangeEnv.baseUrl}/api/eWallet/v1/cashins`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(req.body),
+      }
+    );
+
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ================= VERIFY ================= */
+
+app.get('/verifyTransaction', async (req, res) => {
+  try {
+    const orangeEnv = getOrangeEnv(req);
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Missing token' });
+
+    const response = await fetch(
+      `${orangeEnv.baseUrl}/api/eWallet/v1/transactions?transactionId=${req.query.transactionId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ================= HEALTH ================= */
+
+app.get('/health', (_, res) => res.json({ status: 'OK' }));
+
+/* ================= CLOUD RUN ================= */
+
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log('🚀 Running on port', PORT);
+});
 
 //_____________________________________________________________________________________________________________________________________________________________
 /*app.post('/cashin', async (req, res) => {
@@ -487,7 +634,7 @@ app.get('/verifyTransaction', async (req, res) => {
 });
 */
 // Start the server
-const PORT = process.env.PORT || 3000;
+/*const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-});
+});*/
