@@ -405,6 +405,7 @@ app.post('/getAccessToken', async (req, res) => {
 
 app.get('/getPublicKey', async (req, res) => {
   try {
+    const orangeEnv = getOrangeEnv(req);
     const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
     const environment = req.query.environment || 'sandbox';
     if (!token) return res.status(400).json({ error: 'Missing Bearer token' });
