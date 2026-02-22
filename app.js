@@ -402,6 +402,28 @@ app.post('/getAccessToken', async (req, res) => {
   }
 });
 
+
+app.get('/getPublicKey', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
+    const environment = req.query.environment || 'sandbox';
+    if (!token) return res.status(400).json({ error: 'Missing Bearer token' });
+
+    const r = await fetch(`${baseUrl(environment)}/api/account/v1/publicKeys`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+    });
+
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) return res.status(r.status).json(data);
+
+    // Orange returns: { keyId, keyType, keySize, key }
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: String(err.message || err) });
+  }
+});
+
 /* ================= ENCRYPT PIN ================= */
 
 app.post('/encryptPin', (req, res) => {
