@@ -409,7 +409,7 @@ app.get('/getPublicKey', async (req, res) => {
     const environment = req.query.environment || 'sandbox';
     if (!token) return res.status(400).json({ error: 'Missing Bearer token' });
 
-    const r = await fetch(`${baseUrl(environment)}/api/account/v1/publicKeys`, {
+    const r = await fetch(`${orangeEnv.baseUrl}/api/account/v1/publicKeys`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
     });
