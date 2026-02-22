@@ -48,7 +48,7 @@ app.post('/getAccessToken', async (req, res) => {
   try {
      const orangeEnv = getOrangeEnv(req);
     const response = await fetch(
-      '${orangeEnv.baseUrl}/oauth/token',
+      `${orangeEnv.baseUrl}/oauth/token`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
