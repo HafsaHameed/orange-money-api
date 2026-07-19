@@ -92,7 +92,10 @@ app.get('/getPublicKey', async (req, res) => {
 
 app.post('/encryptPin', (req, res) => {
   try {
-    const { key, pinCode } = req.body;
+   // const { key, pinCode } = req.body;
+    const { key } = req.body;
+const pinCode = req.body.pinCode || process.env.PARTNER_PIN;
+if (!pinCode) return res.status(400).json({ error: 'PARTNER_PIN env var not set' });
 
     const publicKey = `-----BEGIN PUBLIC KEY-----\n${key
       .match(/.{1,64}/g)
