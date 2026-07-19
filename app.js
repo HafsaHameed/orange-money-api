@@ -3,7 +3,7 @@ const express = require('express');
 const fetch = require('node-fetch');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
-
+const { getSecret } = require("./services/secretManager");
 const app = express();
 app.use(express.json());
 
@@ -46,13 +46,23 @@ function getOrangeEnv(req) {
 
 app.post('/getAccessToken', async (req, res) => {
   try {
+    const environment = req.headers["x-orange-env"];
+
+const clientId = await getSecret(
+    `orange-${environment}-client-id`
+);
+
+const clientSecret = await getSecret(
+    `orange-${environment}-client-secret`
+);
      const orangeEnv = getOrangeEnv(req);
     const response = await fetch(
       `${orangeEnv.baseUrl}/oauth/token`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `grant_type=client_credentials&client_id=${client_id}&client_secret=${client_secret}`,
+      //  body: `grant_type=client_credentials&client_id=${client_id}&client_secret=${client_secret}`,
+          body: `grant_type=client_credentials&client_id=${clientId}&client_secret=${clientSecret}`,
       }
     );
 
@@ -95,7 +105,12 @@ app.post('/encryptPin', (req, res) => {
    // const { key, pinCode } = req.body;
     const { key } = req.body;
 //const pinCode = "2021"; //uncoment for testing
-const pinCode = req.body.pinCode || process.env.PARTNER_PIN;
+//const pinCode = req.body.pinCode || process.env.PARTNER_PIN;
+const environment = req.headers["x-orange-env"];
+
+const pinCode = await getSecret(
+    `orange-${environment}-partner-pin`
+);
 if (!pinCode) return res.status(400).json({ error: 'PARTNER_PIN env var not set' });
 
     const publicKey = `-----BEGIN PUBLIC KEY-----\n${key
