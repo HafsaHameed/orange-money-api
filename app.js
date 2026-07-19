@@ -100,7 +100,7 @@ app.get('/getPublicKey', async (req, res) => {
 
 /* ================= ENCRYPT PIN ================= */
 
-app.post('/encryptPin', (req, res) => {
+app.post('/encryptPin', async(req, res) => {
   try {
    // const { key, pinCode } = req.body;
     const { key } = req.body;
