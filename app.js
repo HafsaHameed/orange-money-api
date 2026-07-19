@@ -106,6 +106,7 @@ app.post('/encryptPin', (req, res) => {
     const { key } = req.body;
 //const pinCode = "2021"; //uncoment for testing
 //const pinCode = req.body.pinCode || process.env.PARTNER_PIN;
+    console.log("x-orange-env:", req.headers["x-orange-env"]);
 const environment = req.headers["x-orange-env"];
 
 const pinCode = await getSecret(
