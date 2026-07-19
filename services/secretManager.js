@@ -4,7 +4,7 @@ const { SecretManagerServiceClient } = require("@google-cloud/secret-manager");
 const client = new SecretManagerServiceClient();
 
 const PROJECT_ID =
-  process.env.GCLOUD_PROJECT ||
+  process.env.GOOGLE_CLOUD_PROJECT ||
   process.env.GCP_PROJECT;
 
 if (!PROJECT_ID) {
