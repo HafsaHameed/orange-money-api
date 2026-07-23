@@ -334,7 +334,8 @@ app.post("/driverPayout", async (req, res) => {
           `&client_secret=${clientSecret}`,
       }
     );
-
+console.log("OAuth Status:", tokenResponse.status);
+console.log("OAuth Response:", tokenData);
     const tokenData = await tokenResponse.json();
 
     if (!tokenResponse.ok) {
