@@ -390,7 +390,15 @@ console.log("OAuth Response:", tokenData);
     /* ===========================================
        STEP 4 - CASHOUT
     =========================================== */
+console.log("========== DRIVER PAYOUT ==========");
+console.log("Environment:", environment);
+console.log("Base URL:", orangeEnv.baseUrl);
+console.log("Client ID exists:", !!clientId);
+console.log("Client Secret exists:", !!clientSecret);
+console.log("Partner PIN exists:", !!partnerPin);
 
+console.log("Customer Number:", customerNumber);
+console.log("Amount:", amount);
     const transactionId = uuidv4();
 
     const cashoutBody = {
