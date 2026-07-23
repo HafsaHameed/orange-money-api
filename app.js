@@ -295,6 +295,153 @@ app.get('/verifyTransaction', async (req, res) => {
   }
 });
 
+
+//one endpoint that handles whole payout cashin flow
+app.post("/driverPayout", async (req, res) => {
+  try {
+    const orangeEnv = getOrangeEnv(req);
+    const environment = req.headers["x-orange-env"];
+
+    const {
+      clientId,
+      clientSecret,
+      partnerPin,
+    } = await getOrangeSecrets(environment);
+
+    const { customerNumber, amount } = req.body;
+
+    if (!customerNumber || !amount) {
+      return res.status(400).json({
+        error: "customerNumber and amount are required",
+      });
+    }
+
+    /* ===========================================
+       STEP 1 - ACCESS TOKEN
+    =========================================== */
+
+    const tokenResponse = await fetch(
+      `${orangeEnv.baseUrl}/oauth/token`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/x-www-form-urlencoded",
+        },
+        body:
+          `grant_type=client_credentials` +
+          `&client_id=${clientId}` +
+          `&client_secret=${clientSecret}`,
+      }
+    );
+
+    const tokenData = await tokenResponse.json();
+
+    if (!tokenResponse.ok) {
+      return res.status(tokenResponse.status).json(tokenData);
+    }
+
+    const accessToken = tokenData.access_token;
+
+    /* ===========================================
+       STEP 2 - PUBLIC KEY
+    =========================================== */
+
+    const publicKeyResponse = await fetch(
+      `${orangeEnv.baseUrl}/api/account/v1/publicKeys`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+        },
+      }
+    );
+
+    const publicKeyData =
+      await publicKeyResponse.json();
+
+    if (!publicKeyResponse.ok) {
+      return res
+        .status(publicKeyResponse.status)
+        .json(publicKeyData);
+    }
+
+    /* ===========================================
+       STEP 3 - ENCRYPT PIN
+    =========================================== */
+
+    const publicKey =
+      `-----BEGIN PUBLIC KEY-----\n${
+        publicKeyData.key.match(/.{1,64}/g).join("\n")
+      }\n-----END PUBLIC KEY-----`;
+
+    const encryptedPin = crypto.publicEncrypt(
+      {
+        key: publicKey,
+        padding: crypto.constants.RSA_PKCS1_PADDING,
+      },
+      Buffer.from(partnerPin)
+    );
+
+    const encryptedPartnerPin =
+      encryptedPin.toString("base64");
+
+    /* ===========================================
+       STEP 4 - CASHOUT
+    =========================================== */
+
+    const transactionId = uuidv4();
+
+    const cashoutBody = {
+      partner: {
+        idType: "CODE",
+        id: clientId,
+        encryptedPinCode: encryptedPartnerPin,
+      },
+
+      customer: {
+        idType: "MSISDN",
+        id: customerNumber,
+      },
+
+      amount: {
+        value: amount,
+        unit: "XOF",
+      },
+
+      reference: transactionId,
+    };
+
+    const payoutResponse = await fetch(
+      `${orangeEnv.baseUrl}/api/eWallet/v1/cashins`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(cashoutBody),
+      }
+    );
+
+    const payoutData =
+      await payoutResponse.json();
+
+    return res
+      .status(payoutResponse.status)
+      .json(payoutData);
+
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
+
+
 /* ================= HEALTH ================= */
 
 app.get('/health', (_, res) => res.json({ status: 'OK' }));
