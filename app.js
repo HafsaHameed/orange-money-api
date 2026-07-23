@@ -330,9 +330,9 @@ app.post("/driverPayout", async (req, res) => {
       partnerPin,
     } = await getOrangeSecrets(environment);
 
-    const settings = await getOrangeSettings(environment);
+ 
     
-    const { customerNumber, amount } = req.body;
+    const { customerNumber,partnerNumber, amount  } = req.body;
 
     if (!customerNumber || !amount) {
       return res.status(400).json({
@@ -426,7 +426,7 @@ console.log("Amount:", amount);
     const transactionId = uuidv4();
 const customerNum = normalizeSenegalNumber(customerNumber);
 
-const partnerNum = normalizeSenegalNumber(settings.partnerNumber); // fetched from Secret Manager
+const partnerNum = normalizeSenegalNumber(partnerNumber);
     const cashoutBody = {
       partner: {
         idType: "CODE",
