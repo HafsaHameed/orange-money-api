@@ -404,13 +404,15 @@ console.log("Amount:", amount);
     const cashoutBody = {
       partner: {
         idType: "CODE",
-        id: clientId,
+        id: "771899696"
+        //id: clientId,
         encryptedPinCode: encryptedPartnerPin,
       },
 
       customer: {
         idType: "MSISDN",
-        id: customerNumber,
+       id: "786175700"
+        // id: customerNumber,
       },
 
       amount: {
