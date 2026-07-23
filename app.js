@@ -7,6 +7,7 @@ const { getSecret } = require("./services/secretManager");
 const app = express();
 app.use(express.json());
 
+
 // ✅ Browser-friendly CORS (TEMP: open)
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
