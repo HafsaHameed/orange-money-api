@@ -65,6 +65,29 @@ function getOrangeEnv(req) {
   return ORANGE_CONFIG[env];
 }
 
+
+
+//Phone number format helper function
+function normalizeSenegalNumber(phoneNumber) {
+  if (!phoneNumber) {
+    throw new Error("Customer phone number is required.");
+  }
+
+  // Keep only digits
+  let number = phoneNumber.replace(/\D/g, "");
+
+  // Remove country code if present
+  if (number.startsWith("221")) {
+    number = number.substring(3);
+  }
+
+  // Must now be exactly 9 digits
+  if (number.length !== 9) {
+    throw new Error(`Invalid Senegal phone number: ${phoneNumber}`);
+  }
+
+  return number;
+}
 /* ================= ACCESS TOKEN ================= */
 
 /*app.post('/getAccessToken', async (req, res) => {
