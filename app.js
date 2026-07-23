@@ -223,8 +223,8 @@ app.post("/encryptPin", async (req, res) => {
     const encryptedPin = crypto.publicEncrypt(
       {
         key: publicKey,
-        padding: crypto.constants.RSA_OAEP_PADDING,
-      //  padding: crypto.constants.RSA_PKCS1_PADDING,
+        //padding: crypto.constants.RSA_OAEP_PADDING,
+        padding: crypto.constants.RSA_PKCS1_PADDING,
       
       },
       Buffer.from(partnerPin)
