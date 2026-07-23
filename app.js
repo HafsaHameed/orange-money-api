@@ -422,21 +422,21 @@ console.log("Partner PIN exists:", !!partnerPin);
 console.log("Customer Number:", customerNumber);
 console.log("Amount:", amount);
     const transactionId = uuidv4();
-const customerNumber = normalizeSenegalNumber(customerNumber);
+const customerNum = normalizeSenegalNumber(customerNumber);
 
-const partnerNumber = normalizeSenegalNumber(clientId); // fetched from Secret Manager
+const partnerNum = normalizeSenegalNumber(clientId); // fetched from Secret Manager
     const cashoutBody = {
       partner: {
         idType: "CODE",
         //id: "771899696",
-        id: clientId,
+        id: partnerNum,
         encryptedPinCode: encryptedPartnerPin,
       },
 
       customer: {
         idType: "MSISDN",
        //id: "786175700"
-        id: customerNumber,
+        id: customerNum,
       },
 
       amount: {
