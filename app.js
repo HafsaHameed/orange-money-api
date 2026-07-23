@@ -247,7 +247,6 @@ app.post("/encryptPin", async (req, res) => {
     const encryptedPin = crypto.publicEncrypt(
       {
         key: publicKey,
-        //padding: crypto.constants.RSA_OAEP_PADDING,
         padding: crypto.constants.RSA_PKCS1_PADDING,
       
       },
@@ -423,19 +422,21 @@ console.log("Partner PIN exists:", !!partnerPin);
 console.log("Customer Number:", customerNumber);
 console.log("Amount:", amount);
     const transactionId = uuidv4();
+const customerNumber = normalizeSenegalNumber(customerNumber);
 
+const partnerNumber = normalizeSenegalNumber(clientId); // fetched from Secret Manager
     const cashoutBody = {
       partner: {
         idType: "CODE",
-        id: "771899696",
-        //id: clientId,
+        //id: "771899696",
+        id: clientId,
         encryptedPinCode: encryptedPartnerPin,
       },
 
       customer: {
         idType: "MSISDN",
-       id: "786175700"
-        // id: customerNumber,
+       //id: "786175700"
+        id: customerNumber,
       },
 
       amount: {
