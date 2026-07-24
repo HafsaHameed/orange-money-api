@@ -226,11 +226,14 @@ app.post("/encryptPin", async (req, res) => {
   try {
 
     const environment = req.headers["x-orange-env"];
-
+   const partnerPin = await getSecret(
+    `orange-${environment}-partner-pin`
+);
+    
     const {
       partnerPin,
     } = await getOrangeSecrets(environment);
-
+console.log(partnerPin);
     const { key } = req.body;
 
     if (!key) {
@@ -419,6 +422,7 @@ console.log("Environment:", environment);
 console.log("Base URL:", orangeEnv.baseUrl);
 console.log("Client ID exists:", !!clientId);
 console.log("Client Secret exists:", !!clientSecret);
+console.log("Partner PIN exists:", !!partnerPin);
 console.log("Partner PIN exists:", !!partnerPin);
 
 console.log("Customer Number:", customerNumber);
