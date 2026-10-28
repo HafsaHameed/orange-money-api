@@ -7,7 +7,7 @@ const { getSecret } = require("./services/secretManager");
 const app = express();
 app.use(express.json());
 
-// ✅ Browser-friendly CORS (TEMP: open)
+//  cors
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
@@ -186,7 +186,7 @@ app.get('/health', (_, res) => res.json({ status: 'OK' }));
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log('🚀 Running on port', PORT);
+  console.log(' Running on port', PORT);
 });
 
 
@@ -200,7 +200,7 @@ const crypto = require('crypto');
 const NodeRSA = require('node-rsa'); 
 const { v4: uuidv4 } = require('uuid');
 
-const app = express(); // ✅ MUST come before app.use
+const app = express(); //  MUST come before app.use
 
 app.use(express.json());
 
